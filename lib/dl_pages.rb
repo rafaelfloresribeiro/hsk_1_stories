@@ -2,6 +2,8 @@
 require 'open-uri'
 require 'nokogiri'
 require 'csv'
+require 'net/http'
+require 'pry-byebug'
 
 def print_list
   CSV.read('story_links.csv')
@@ -10,13 +12,15 @@ end
 def write_list
   order = print_list
   order.map do |link|
-    doc = Nokogiri::HTML(URI.open(link.join))
+    html = Net::HTTP.get(URI(link.join))
+    doc = Nokogiri::HTML(html)
     content = doc.at_css('div.entry-content').text
     name = doc.at_css('h1').text
-    File.write("#{name}.txt", content)
-    sleep 5
+    puts name, content
+    File.write("../stories/#{name}.txt", content)
     puts 'waitin 5s'
+    sleep 5
   end
 end
 
-write_list
+puts write_list
